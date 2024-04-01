@@ -1,13 +1,37 @@
-function myFunction() {
-  var sheet = SpreadsheetApp.getActiveSheet();
-  var a1 = sheet.getRange('A1');
-  var oldText = a1.getValue();
-  var newText = oldText;
-  var formula = a1.getRichTextValue();
-  Logger.log(a1.getValue());
+function onEdit(e) {
+  var sheet = e.source.getActiveSheet();
+  var range = e.range;
 
-  var runs = formula.getRuns();
+  var numRows = range.getNumRows();
+  var numCols = range.getNumColumns();
+
+  for (var i = 1; i <= numRows; i++) {
+    for (var j = 1; j <= numCols; j++) {
+      var cell = range.getCell(i, j);
+      extractHyperlinkUrls(sheet, cell);
+    }
+  }
+}
+
+function extractHyperlinkUrls(sheet, answerCell) {
+  var oldText = answerCell.getValue();
+
+  if (oldText.length == 0) {
+    sheet.getRange(answerCell.getRow(), 3).setValue(null);
+    return;
+  }
+
+  var newText = oldText;
+  var richTextValue = answerCell.getRichTextValue();
+  Logger.log(oldText);
+
+  var runs = richTextValue.getRuns();
   var replacements = [];
+
+  if (runs.length == 0) {
+    sheet.getRange(answerCell.getRow(), 3).setValue(null);
+    return;
+  }
 
   runs.forEach(run => {
     if (run.getLinkUrl() == null) {
@@ -42,5 +66,5 @@ function myFunction() {
   });
 
   Logger.log(newText);
+  sheet.getRange(answerCell.getRow(), 3).setValue(newText);
 }
-
